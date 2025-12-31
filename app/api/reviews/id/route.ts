@@ -4,40 +4,43 @@ export async function GET(
   _: Request,
   { params }: { params: { id: string } }
 ) {
-  const vendor = await prisma.vendors.findUnique({
+  const review = await prisma.reviews.findUnique({
     where: { id: Number(params.id) },
     include: {
+      users: true,
       products: true,
-      vendor_payouts: true,
     },
   });
 
-  if (!vendor) {
-    return new Response("Vendor not found", { status: 404 });
+  if (!review) {
+    return new Response("Review not found", { status: 404 });
   }
 
-  return Response.json(vendor);
+  return Response.json(review);
 }
 
 export async function PUT(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const data = await req.json();
+  const { rating, comment } = await req.json();
 
-  const updatedVendor = await prisma.vendors.update({
+  const updatedReview = await prisma.reviews.update({
     where: { id: Number(params.id) },
-    data,
+    data: {
+      rating,
+      comment,
+    },
   });
 
-  return Response.json(updatedVendor);
+  return Response.json(updatedReview);
 }
 
 export async function DELETE(
   _: Request,
   { params }: { params: { id: string } }
 ) {
-  await prisma.vendors.delete({
+  await prisma.reviews.delete({
     where: { id: Number(params.id) },
   });
 

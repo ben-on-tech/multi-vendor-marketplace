@@ -4,19 +4,24 @@ export async function GET(
   _: Request,
   { params }: { params: { id: string } }
 ) {
-  const vendor = await prisma.vendors.findUnique({
+  const order = await prisma.orders.findUnique({
     where: { id: Number(params.id) },
     include: {
-      products: true,
-      vendor_payouts: true,
+      users: true,
+      order_items: {
+        include: {
+          products: true,
+          vendors: true,
+        },
+      },
     },
   });
 
-  if (!vendor) {
-    return new Response("Vendor not found", { status: 404 });
+  if (!order) {
+    return new Response("Order not found", { status: 404 });
   }
 
-  return Response.json(vendor);
+  return Response.json(order);
 }
 
 export async function PUT(
@@ -25,19 +30,19 @@ export async function PUT(
 ) {
   const data = await req.json();
 
-  const updatedVendor = await prisma.vendors.update({
+  const updatedOrder = await prisma.orders.update({
     where: { id: Number(params.id) },
     data,
   });
 
-  return Response.json(updatedVendor);
+  return Response.json(updatedOrder);
 }
 
 export async function DELETE(
   _: Request,
   { params }: { params: { id: string } }
 ) {
-  await prisma.vendors.delete({
+  await prisma.orders.delete({
     where: { id: Number(params.id) },
   });
 
