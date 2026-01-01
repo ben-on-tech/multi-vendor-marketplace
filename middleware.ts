@@ -1,34 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import jwt from "jsonwebtoken";
 
 export function middleware(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
+  const auth = req.headers.get("authorization");
 
-  if (!authHeader) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  if (!auth || !auth.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const token = authHeader.split(" ")[1];
-    const decoded = verifyToken(token);
-    req.headers.set("user", JSON.stringify(decoded));
-    return NextResponse.next();
+    const token = auth.split(" ")[1];
+    const user = jwt.verify(token, process.env.JWT_SECRET!);
+
+    const headers = new Headers(req.headers);
+    headers.set("user", JSON.stringify(user));
+
+    return NextResponse.next({ headers });
   } catch {
-    return NextResponse.json(
-      { error: "Invalid token" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 }
 
 export const config = {
-  matcher: [
-    "/api/products/:path*",
-    "/api/orders/:path*",
-    "/api/cart/:path*",
-    "/api/reviews/:path*",
-  ],
+  matcher: ["/api/:path*"],
 };

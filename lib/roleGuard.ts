@@ -1,5 +1,8 @@
-export function requireRole(user: any, role: string) {
+export function requireRole(
+  user: { role: string },
+  role: "vendor" | "buyer" | "admin"
+) {
   if (user.role !== role) {
-    throw new Error("Forbidden");
+    throw new Error("Forbidden: insufficient permissions");
   }
 }
